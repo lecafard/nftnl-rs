@@ -15,8 +15,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+## [0.9.1] - 2025-12-08
 ### Fixed
 - Avoid raising `NLM_F_ACK` for batch start/end messages on kernel version prior to 6.10.
+
 
 ## [0.9.0] - 2025-11-26
 ### Added
