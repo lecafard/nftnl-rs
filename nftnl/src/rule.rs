@@ -1,6 +1,6 @@
 use crate::{MsgType, chain::Chain, expr::Expression};
 use nftnl_sys::{self as sys, libc};
-use std::ffi::c_void;
+use std::ffi::{CStr, c_void};
 use std::os::raw::c_char;
 use std::ptr;
 
@@ -65,6 +65,42 @@ impl<'a> Rule<'a> {
     /// stops and the packet is evaluated against the next rule in the chain.
     pub fn add_expr(&mut self, expr: &impl Expression) {
         unsafe { sys::nftnl_rule_add_expr(self.rule.as_ptr(), expr.to_expr(self).as_ptr()) }
+    }
+
+    /// Add a comment to this rule.
+    ///
+    /// Returns `Err` if comment is too large.
+    pub fn set_comment<T: AsRef<CStr>>(&mut self, comment: T) -> Result<(), &'static str> {
+        let udata_buf =
+            try_alloc!(unsafe { sys::nftnl_udata_buf_alloc(sys::NFTNL_UDATA_COMMENT_MAXLEN) });
+        if !unsafe {
+            sys::nftnl_udata_put_strz(
+                udata_buf.as_ptr(),
+                sys::NFTNL_UDATA_RULE_COMMENT as u8,
+                comment.as_ref().as_ptr(),
+            )
+        } {
+            return Err("Comment too big");
+        }
+        let data = unsafe { sys::nftnl_udata_buf_data(udata_buf.as_ptr()) };
+        let len = unsafe { sys::nftnl_udata_buf_len(udata_buf.as_ptr()) };
+        let result = unsafe {
+            sys::nftnl_rule_set_data(
+                self.rule.as_ptr(),
+                sys::NFTNL_RULE_USERDATA as u16,
+                data,
+                len,
+            )
+        };
+
+        if result == -1 {
+            // OOM, and the tried allocation was likely very small,
+            // so we are in a very tight situation. We do what libstd does, aborts.
+            ::std::process::abort();
+        }
+
+        unsafe { sys::nftnl_udata_buf_free(udata_buf.as_ptr()) };
+        Ok(())
     }
 
     /// Returns a reference to the [`Chain`] this rule lives in.

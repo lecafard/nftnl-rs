@@ -30,7 +30,7 @@ const OUT_CHAIN_NAME: &CStr = c"chain-for-outgoing-packets";
 
 const BLOCK_THIS_MAC: &[u8] = &[0, 0, 0, 0, 0, 0];
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // For verbose explanations of what all these lines up until the rule creation does, see the
     // `add-rules` example.
     let mut batch = Batch::new();
@@ -45,6 +45,7 @@ fn main() -> io::Result<()> {
     // === ADD RULE DROPPING ALL TRAFFIC TO THE MAC ADDRESS IN `BLOCK_THIS_MAC` ===
 
     let mut block_ethernet_rule = Rule::new(&out_chain);
+    block_ethernet_rule.set_comment(c"Drop packets to mac address")?;
 
     // Check that the interface type is an ethernet interface. Must be done before we can check
     // payload values in the ethernet header.
