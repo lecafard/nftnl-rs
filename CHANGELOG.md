@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Added
+- `Rule::set_comment`
 
 
 ## [0.9.2] - 2026-04-24
