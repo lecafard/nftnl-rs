@@ -79,6 +79,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create a new rule object under the input chain.
     let mut allow_loopback_in_rule = Rule::new(&in_chain);
+    allow_loopback_in_rule.set_comment(c"Allow all traffic to loopback")?;
+
     // Lookup the interface index of the loopback interface.
     let lo_iface_index = iface_index(c"lo")?;
 
@@ -88,6 +90,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // expression, which will load the interface index of the interface the packet came from into
     // a special "register" in netfilter.
     allow_loopback_in_rule.add_expr(&nft_expr!(meta iif));
+
     // Next expression in the rule is to compare the value loaded into the register with our desired
     // interface index, and succeed only if it's equal. For any packet processed where the equality
     // does not hold the packet is said to not match this rule, and the packet moves on to be
@@ -104,6 +107,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // === ADD A RULE ALLOWING (AND COUNTING) ALL PACKETS TO THE 10.1.0.0/24 NETWORK ===
 
     let mut block_out_to_private_net_rule = Rule::new(&out_chain);
+    block_out_to_private_net_rule.set_comment(c"Allow traffic to 10.1.0.0/24")?;
     let private_net_ip = Ipv4Addr::new(10, 1, 0, 0);
     let private_net_prefix = 24;
     let private_net = IpNetwork::V4(Ipv4Network::new(private_net_ip, private_net_prefix)?);
@@ -141,6 +145,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // === ADD A RULE ALLOWING ALL OUTGOING ICMPv6 PACKETS WITH TYPE 133 AND CODE 0 ===
 
     let mut allow_router_solicitation = Rule::new(&out_chain);
+    allow_router_solicitation.set_comment(c"Allow router solicitation")?;
 
     // Check that the packet is IPv6 and ICMPv6
     allow_router_solicitation.add_expr(&nft_expr!(meta nfproto));

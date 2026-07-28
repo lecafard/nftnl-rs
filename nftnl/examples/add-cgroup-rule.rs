@@ -71,6 +71,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // === ADD CGROUPV2 RULE  ===
     // Create a new rule object under the input chain.
     let mut cgroup_rule = Rule::new(&out_chain);
+    cgroup_rule.set_comment(c"Count packets from cgroup(v2)")?;
     // inode of cgroup dir
     let cgroup = {
         let cgroup_path = "/sys/fs/cgroup/example-cgroup";
